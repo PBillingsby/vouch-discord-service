@@ -1,8 +1,38 @@
 import Head from 'next/head'
-import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import Arweave from 'arweave';
+import { useEffect, useState } from 'react';
+import { ArweaveWebWallet } from 'arweave-wallet-connector'
+import { getVouchedUsers } from '../services/discord'
+
+const arweave = Arweave.init({
+  host: 'arweave.net',
+  port: 443,
+  protocol: 'https'
+});
 
 export default function Home() {
+  const [address, setAddress] = useState()
+  const users = getVouchedUsers()
+
+  console.log(users)
+  const wallet = new ArweaveWebWallet({
+    name: 'Connector Example',
+    logo: 'https://jfbeats.github.io/ArweaveWalletConnector/placeholder.svg'
+  })
+
+  const connect = async () => {
+    if (!address) {
+      if (!window.arweaveWallet) {
+        window.open("https://arconnect.io", "_blank");
+      }
+      await arweaveWallet.connect(["ACCESS_ADDRESS", "SIGN_TRANSACTION"], {
+        name: "Vouch DAO v0",
+      });
+      setAddress(await arweaveWallet.getActiveAddress());
+    }
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -12,60 +42,21 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+        <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Vouch Discord</h1>
+        <div className="w-1/2 p-12">
+          <h4 className="mb-4 text-md tracking-tight leading-none text-gray-900 md:text-lg lg:text-xl dark:text-white">Vouch Discord Service is a registered server of Vouch DAO, this server allows users to leverage the power of Discord to create a Vouch Record for Web of Value Services.</h4>
+          <h4 className="mb-4 text-md tracking-tight leading-none text-gray-900 md:text-lg lg:text-xl dark:text-white">Connect wallet to get started</h4>
+        </div>
+        <div className='flex flex-col content-center'>
+          {
+            address ? (
+              <button type="button" onClick={() => window.location.href = process.env.NEXT_PUBLIC_DISCORD_ENDPOINT + `&state=${address}`} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Authenticate {`${address.slice(0, 8)}...${address.slice(address.length - 8)}`} with Discord</button>
+            )
+              :
+              <button type="button" onClick={connect} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Connect Wallet</button>
+          }
         </div>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
     </div>
   )
 }
